@@ -7,9 +7,40 @@
         text: "",
         positive: false
     };
-    let values = {
-        ppa: 50,
-    }
+    const teamStats = {
+        kickReturns: 0,
+        games: 0,
+        passingTDs: 0,
+        rushingTDs: 0,
+        interceptionYards: 0,
+        tacklesForLoss: 0,
+        kickReturnTDs: 0,
+        rushingYards: 0,
+        fourthDownConversions: 0,
+        possessionTime: 0,
+        penalties: 0,
+        puntReturnYards: 0,
+        totalYards: 0,
+        interceptionTDs: 0,
+        puntReturnTDs: 0,
+        kickReturnYards: 0,
+        firstDowns: 0,
+        sacks: 0,
+        passesIntercepted: 0,
+        puntReturns: 0,
+        fumblesLost: 0,
+        passCompletions: 0,
+        netPassingYards: 0,
+        fourthDowns: 0,
+        turnovers: 0,
+        passAttempts: 0,
+        interceptions: 0,
+        fumblesRecovered: 0,
+        thirdDowns: 0,
+        penaltyYards: 0,
+        thirdDownConversions: 0,
+        rushingAttempts: 0
+    };
 
     function callBackend() {
         if (!conference) {
@@ -25,13 +56,12 @@
             status = {text: "Error: " + err.message, positive: false};
         }).finally(() => {
             console.log("Received response.")
-            console.log(values)
         });
     }
 
     function newForm() {
         let formData = new FormData();
-        formData.append("weights", JSON.stringify(values));
+        formData.append("weights", JSON.stringify(teamStats));
         return formData;
     }
 </script>
@@ -48,6 +78,6 @@
     asdasd
 </Button>
 
-<Label>Points Per Attempt</Label>
-<Range id="ppa" min="0" max="100" bind:value={values.ppa} />
-<p>Points per Attempt: {values.ppa}</p>
+<Label>First Downs</Label>
+<Range id="firstDowns" min="0" max="100" bind:value={teamStats.firstDowns} />
+<p>First Downs: {teamStats.firstDowns}</p>

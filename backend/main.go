@@ -6,6 +6,8 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"reflect"
+	"unicode"
 
 	"github.com/gorilla/mux"
 )
@@ -22,32 +24,19 @@ func requestHandler(w http.ResponseWriter, r *http.Request) {
 	enableCORS(&w)
 	vars := mux.Vars(r)
 	weightsForm := r.FormValue("weights")
-	var weights Weights
+	var weights TeamStats
 	err := json.Unmarshal([]byte(weightsForm), &weights)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	url := fmt.Sprintf(`https://api.collegefootballdata.com/teams?conference=%s`, vars["conference"])
-	res := getAPIData(url)
-
-	var teams []Team
-	err = json.NewDecoder(res.Body).Decode(&teams)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	var stats []TeamStats
-	for _, team := range teams {
-		stats = append(stats, getTeamStats(team))
-
-	}
+	stats := getDefaultStats(vars["conference"])
 
 	var teamData []Ranking
-	for _, statLine := range stats {
+	for team, stat := range stats {
 		teamData = append(teamData, Ranking{
-			Team:  statLine.Team,
-			Score: calculateScore(statLine, weights),
+			Team:  team,
+			Score: calculateScore(stat, weights),
 		})
 	}
 
@@ -58,17 +47,61 @@ func requestHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func calculateScore(stats TeamStats, weights Weights) float64 {
-	return stats.Defense.PPA*float64(weights.PPA) + stats.Offense.PPA*float64(weights.PPA)
+func calculateScore(stats TeamStats, weights TeamStats) float64 {
+	statField := reflect.ValueOf(stats)
+	weightField := reflect.ValueOf(weights)
+	ranking := 0
+	for i := 0; i < statField.NumField(); i++ {
+		ranking += int(statField.Field(i).Int() * weightField.Field(i).Int())
+	}
+	return float64(ranking)
 }
 
-func getTeamStats(team Team) TeamStats {
+func getDefaultStats(query string) map[string]TeamStats {
+	url := fmt.Sprintf(`https://api.collegefootballdata.com/stats/season?year=2023&&conference=%s`, query)
+	res := getAPIData(url)
+	var stats []Stat
+	err := json.NewDecoder(res.Body).Decode(&stats)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	teamsUrl := fmt.Sprintf(`https://api.collegefootballdata.com/teams?conference=%s`, query)
+	teamsRes := getAPIData(teamsUrl)
+	var teams []Team
+	err = json.NewDecoder(teamsRes.Body).Decode(&teams)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	statMap := make(map[string]TeamStats)
+	for _, stat := range stats {
+		tempTeam := statMap[stat.Team]
+		value := reflect.ValueOf(&tempTeam).Elem()
+		fieldName := stat.StatName
+		r := []rune(fieldName)
+		r[0] = unicode.ToUpper(r[0])
+		fieldName = string(r)
+		field := value.FieldByName(fieldName)
+		if field.IsValid() && field.CanSet() {
+			switch v := stat.StatValue.(type) {
+			case float64:
+				field.SetInt(int64(v))
+			case string:
+				field.SetString(v)
+			}
+		}
+		statMap[stat.Team] = tempTeam
+	}
+	return statMap
+}
+
+func getAdvancedTeamStats(team Team) AdvTeamStats {
 	url := fmt.Sprintf(`https://api.collegefootballdata.com/stats/season/advanced?year=2023&team=%s`, team.School)
 	res := getAPIData(url)
-	var teamData []TeamStats
+	var teamData []AdvTeamStats
 	err := json.NewDecoder(res.Body).Decode(&teamData)
 	if err != nil {
-		fmt.Println("DDD")
 		log.Fatal(err)
 	}
 	if len(teamData) != 1 {

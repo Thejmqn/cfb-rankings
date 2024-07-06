@@ -1,6 +1,49 @@
 package main
 
+type Stat struct {
+	Season     int         `json:"season"`
+	Team       string      `json:"team"`
+	Conference string      `json:"conference"`
+	StatName   string      `json:"statName"`
+	StatValue  interface{} `json:"statValue"`
+}
+
 type TeamStats struct {
+	KickReturns           int `json:"kickReturns"`
+	Games                 int `json:"games"`
+	PassingTDs            int `json:"passingTDs"`
+	RushingTDs            int `json:"rushingTDs"`
+	InterceptionYards     int `json:"interceptionYards"`
+	TacklesForLoss        int `json:"tacklesForLoss"`
+	KickReturnTDs         int `json:"kickReturnTDs"`
+	RushingYards          int `json:"rushingYards"`
+	FourthDownConversions int `json:"fourthDownConversions"`
+	PossessionTime        int `json:"possessionTime"`
+	Penalties             int `json:"penalties"`
+	PuntReturnYards       int `json:"puntReturnYards"`
+	TotalYards            int `json:"totalYards"`
+	InterceptionTDs       int `json:"interceptionTDs"`
+	PuntReturnTDs         int `json:"puntReturnTDs"`
+	KickReturnYards       int `json:"kickReturnYards"`
+	FirstDowns            int `json:"firstDowns"`
+	Sacks                 int `json:"sacks"`
+	PassesIntercepted     int `json:"passesIntercepted"`
+	PuntReturns           int `json:"puntReturns"`
+	FumblesLost           int `json:"fumblesLost"`
+	PassCompletions       int `json:"passCompletions"`
+	NetPassingYards       int `json:"netPassingYards"`
+	FourthDowns           int `json:"fourthDowns"`
+	Turnovers             int `json:"turnovers"`
+	PassAttempts          int `json:"passAttempts"`
+	Interceptions         int `json:"interceptions"`
+	FumblesRecovered      int `json:"fumblesRecovered"`
+	ThirdDowns            int `json:"thirdDowns"`
+	PenaltyYards          int `json:"penaltyYards"`
+	ThirdDownConversions  int `json:"thirdDownConversions"`
+	RushingAttempts       int `json:"rushingAttempts"`
+}
+
+type AdvTeamStats struct {
 	Season     int    `json:"season"`
 	Team       string `json:"team"`
 	Conference string `json:"conference"`
@@ -143,10 +186,6 @@ type Team struct {
 		Grass           bool    `json:"grass"`
 		Dome            bool    `json:"dome"`
 	} `json:"location"`
-}
-
-type Weights struct {
-	PPA int `json:ppa`
 }
 
 type Ranking struct {
