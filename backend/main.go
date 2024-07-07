@@ -1,12 +1,14 @@
 package main
 
 import (
+	"cmp"
 	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
 	"os"
 	"reflect"
+	"slices"
 	"unicode"
 
 	"github.com/gorilla/mux"
@@ -39,6 +41,13 @@ func requestHandler(w http.ResponseWriter, r *http.Request) {
 			Score: calculateScore(stat, weights),
 		})
 	}
+	slices.SortFunc(teamData, func(a, b Ranking) int {
+		if n := cmp.Compare(b.Score, a.Score); n != 0 {
+			return n
+		} else {
+			return cmp.Compare(b.Team, a.Team)
+		}
+	})
 
 	w.Header().Set("Content-Type", "application/json")
 	sendRes := json.NewEncoder(w).Encode(teamData)

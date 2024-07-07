@@ -41,6 +41,7 @@
         thirdDownConversions: 0,
         rushingAttempts: 0
     };
+    let response = [];
 
     function callBackend() {
         if (!conference) {
@@ -49,7 +50,8 @@
         }
         axios.post(`http://localhost:8080/data/${conference}`, newForm(), {headers: {'Content-Type': 'multipart/form-data'}})
         .then(res => {
-            console.log(res);
+            response = res.data;
+            console.log(response)
             status = {text: "Received response.", positive: true};
         }).catch(err => {
             console.log(err);
@@ -71,13 +73,21 @@
 <p>{conference}</p>
 <p style="color: {status.positive ? 'green' : 'red'}">{status.text}</p>
 <button on:click={callBackend}>Click to call</button>
-<h1 class="text-3xl font-bold overline">
-    Hello world!
-</h1>
-<Button>
-    asdasd
-</Button>
 
-<Label>First Downs</Label>
-<Range id="firstDowns" min="0" max="100" bind:value={teamStats.firstDowns} />
-<p>First Downs: {teamStats.firstDowns}</p>
+{#if response}
+    <ol>
+    {#each response as team}
+        <li>{team.Team}</li>
+    {/each}
+    </ol>
+{:else}
+    <p>Waiting for response.</p>
+{/if}
+
+<ul>
+    {#each new Map(Object.entries(teamStats)) as stat}
+    <Label>{stat[0]}</Label>
+    <Range id={stat} min="0" max="100" bind:value={teamStats[stat[0]]}/>    
+    <li>{stat[1]}</li>
+    {/each}
+</ul>
