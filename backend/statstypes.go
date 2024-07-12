@@ -1,5 +1,12 @@
 package main
 
+type Conference struct {
+	Name    string `json:"name"`
+	Code    string `json:"code"`
+	Type    string `json:"type"`
+	Checked bool   `json:"checked"`
+}
+
 type Stat struct {
 	Season     int         `json:"season"`
 	Team       string      `json:"team"`

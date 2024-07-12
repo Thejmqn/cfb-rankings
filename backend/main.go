@@ -16,7 +16,7 @@ import (
 
 func main() {
 	router := mux.NewRouter()
-	router.HandleFunc("/data/{conference}", requestHandler).Methods(http.MethodPost, http.MethodOptions)
+	router.HandleFunc("/data", requestHandler).Methods(http.MethodPost, http.MethodOptions)
 	router.Use(mux.CORSMethodMiddleware(router))
 	fmt.Println("Server started on port 8080")
 	http.ListenAndServe("localhost:8080", router)
@@ -24,15 +24,20 @@ func main() {
 
 func requestHandler(w http.ResponseWriter, r *http.Request) {
 	enableCORS(&w)
-	vars := mux.Vars(r)
 	weightsForm := r.FormValue("weights")
+	conferenceForm := r.FormValue("conferences")
 	var weights TeamStats
 	err := json.Unmarshal([]byte(weightsForm), &weights)
 	if err != nil {
 		log.Fatal(err)
 	}
+	var conferences []Conference
+	err = json.Unmarshal([]byte(conferenceForm), &conferences)
+	if err != nil {
+		log.Fatal(err)
+	}
 
-	stats := getDefaultStats(vars["conference"])
+	stats := getDefaultStats(conferences)
 
 	var teamData []Ranking
 	for team, stat := range stats {
@@ -66,21 +71,21 @@ func calculateScore(stats TeamStats, weights TeamStats) float64 {
 	return float64(ranking)
 }
 
-func getDefaultStats(query string) map[string]TeamStats {
-	url := fmt.Sprintf(`https://api.collegefootballdata.com/stats/season?year=2023&&conference=%s`, query)
-	res := getAPIData(url)
+func getDefaultStats(conferences []Conference) map[string]TeamStats {
 	var stats []Stat
-	err := json.NewDecoder(res.Body).Decode(&stats)
-	if err != nil {
-		log.Fatal(err)
-	}
 
-	teamsUrl := fmt.Sprintf(`https://api.collegefootballdata.com/teams?conference=%s`, query)
-	teamsRes := getAPIData(teamsUrl)
-	var teams []Team
-	err = json.NewDecoder(teamsRes.Body).Decode(&teams)
-	if err != nil {
-		log.Fatal(err)
+	for _, conference := range conferences {
+		if conference.Checked {
+			url := fmt.Sprintf(`https://api.collegefootballdata.com/stats/season?year=2023&conference=%s`,
+				conference.Code)
+			res := getAPIData(url)
+			var conferenceStats []Stat
+			err := json.NewDecoder(res.Body).Decode(&conferenceStats)
+			if err != nil {
+				log.Fatal(err)
+			}
+			stats = append(stats, conferenceStats...)
+		}
 	}
 
 	statMap := make(map[string]TeamStats)

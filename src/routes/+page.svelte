@@ -15,7 +15,6 @@
         {name: "Sun Belt", code: "SBC", type: "FBS", checked: false},
         {name: "FBS Independents", code: "Ind", type: "FBS", checked: false}
     ];
-    let conference = "";
     let status = {
         text: "",
         positive: false
@@ -58,11 +57,11 @@
 
     function callBackend() {
         console.log(conferences);
-        if (!conference) {
+        /*if (!conference) {
             status = {text: "Please enter a code.", positive: false};
             return;
-        }
-        axios.post(`http://localhost:8080/data/${conference}`, newForm(), {headers: {'Content-Type': 'multipart/form-data'}})
+        }*/
+        axios.post(`http://localhost:8080/data`, newForm(), {headers: {'Content-Type': 'multipart/form-data'}})
         .then(res => {
             response = res.data;
             console.log(response)
@@ -77,6 +76,7 @@
 
     function newForm() {
         let formData = new FormData();
+        formData.append("conferences", JSON.stringify(conferences));
         formData.append("weights", JSON.stringify(teamStats));
         return formData;
     }
